@@ -6,6 +6,7 @@ from tabulate import tabulate
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = myclient["UKFood"]
 coll = db["Restaurants"]
+
 #################################### Functions           ###########################################################
 
 def selection1(cuisine,zipcode):
@@ -20,14 +21,16 @@ def selection2(address,rating):
     for x in coll.find({'ADDRESS': query_string,"RATING" : condition}).sort("RATING",-1):
         print(f"{x['RES_NAME']}   {x['FOODTYPE']}")
 
-# def selection3(cuisine):
-#     db.coll.aggregate([
-#         {$match: { "FOODTYPE": cuisine }}
-#         {$group: { "ZIPCODE": }}
-#     ])
-#     print(f"Restaurant Name\t\t\t\tAddress\t\t\t\t\t\t\tRating\n")
-#     for x in coll.find(query).sort("RATING",-1).limit(5):
-#         print(f"{x['RES_NAME']}\t\t{x['ADDRESS']}\t\t{x['RATING']}")
+def selection3(cusine):
+    count = 0
+    agg_result = coll.aggregate([
+        { '$match' : { 'FOODTYPE': cusine}},
+        { '$group' : { '_id' : '$ZIPCODE', 'count' : { '$sum': 1}}},
+        {'$sort'   : {'count' : -1}}
+    ])
+    for record in agg_result:
+        print(f' {record["_id"]}    {record["count"]}')
+
 
 
 ################################### Input From the User:############################################################

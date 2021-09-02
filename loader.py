@@ -8,9 +8,8 @@ db = myclient["UKFood"]
 coll = db["Restaurants"]
 
 # list to catch any duplicates
-duplicates = []
+duplicates = {}
 restdict = {}
-duplicates_rec = 0
 
 #Open and Read the JSON file.
 #Load the data from file to DB
@@ -23,18 +22,14 @@ with open('res.json') as data:
   for line in data:
     jsonrow = json.loads(line)
     # Removing the duplicated on the "Name" of the Restaurant.
-    if jsonrow['name'] not in duplicates:
-        restdict = {
-            "RES_NAME"  : jsonrow["name"],
-            "ADDRESS"   : str(jsonrow["address"]) +',' + jsonrow["address line 2"],
-            "FOODTYPE"  : jsonrow["type_of_food"],
-            "RATING"    : jsonrow["rating"],
-            "ZIPCODE"   : jsonrow["outcode"] + jsonrow["postcode"]
-        }
-        coll.insert_one(restdict)
-        duplicates.append(jsonrow['name'])
-    else:
-        duplicates_rec += duplicates_rec
-
-print(f"Number of duplicate records removed :  {duplicates_rec}")
-print(len(duplicates))
+    if (jsonrow['name'],jsonrow["outcode"] + jsonrow["postcode"]) not in duplicates.items():
+        if jsonrow["rating"] != "Not yet rated": # Remove the records which do not have a rating yet
+            restdict = {
+                "RES_NAME"  : jsonrow["name"],
+                "ADDRESS"   : str(jsonrow["address"]) +',' + jsonrow["address line 2"],
+                "FOODTYPE"  : jsonrow["type_of_food"],
+                "RATING"    : jsonrow["rating"],
+                "ZIPCODE"   : jsonrow["outcode"] + jsonrow["postcode"]
+            }
+            coll.insert_one(restdict)
+            duplicates[(jsonrow['name'])] = jsonrow["outcode"] + jsonrow["postcode"]
